@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RYORI｜不動産投資シミュレーター</title>
+<style>
+  :root{
+    --ink:#10221c;
+    --paper:#f3efe4;
+    --paper-2:#eae4d3;
+    --moss:#2f5d4f;
+    --moss-soft:#3f7565;
+    --brass:#c1873b;
+    --brass-soft:#d9a85a;
+    --line:#d6cfbd;
+    --red:#b04a3a;
+    --muted:#6e6855;
+    --card:#fbf9f2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Hiragino Mincho ProN','Yu Mincho',serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sans{font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* ---------- header ---------- */
+  header.top{
+    border-bottom:1px solid var(--line);
+    background:rgba(243,239,228,.85);
+    backdrop-filter:blur(8px);
+    position:sticky;top:0;z-index:50;
+  }
+  .top-in{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand .mark{
+    font-size:24px;letter-spacing:.32em;font-weight:700;color:var(--moss);
+  }
+  .brand .sub{font-size:11px;letter-spacing:.28em;color:var(--muted)}
+  .top-note{font-size:12px;color:var(--muted);letter-spacing:.1em}
+
+  /* ---------- hero ---------- */
+  .hero{padding:64px 0 40px;position:relative;overflow:hidden}
+  .hero .eyebrow{
+    font-size:12px;letter-spacing:.4em;color:var(--brass);
+    text-transform:uppercase;margin-bottom:22px;
+  }
+  .hero h1{
+    font-size:clamp(34px,5.4vw,62px);font-weight:700;line-height:1.18;
+    letter-spacing:.02em;
+  }
+  .hero h1 .accent{color:var(--moss);position:relative}
+  .hero h1 .accent::after{
+    content:"";position:absolute;left:0;bottom:.08em;width:100%;height:.14em;
+    background:var(--brass-soft);opacity:.55;
+  }
+  .hero p.lede{
+    margin-top:24px;max-width:560px;font-size:17px;color:#3a4742;
+  }
+  .hero-figures{
+    display:flex;gap:40px;margin-top:38px;flex-wrap:wrap;
+  }
+  .figure .n{font-size:30px;color:var(--moss);font-weight:700}
+  .figure .l{font-size:12px;color:var(--muted);letter-spacing:.14em}
+  .hero-ring{
+    position:absolute;right:-120px;top:-40px;width:420px;height:420px;
+    border:1px solid var(--line);border-radius:50%;pointer-events:none;
+  }
+  .hero-ring::before{
+    content:"";position:absolute;inset:48px;border:1px solid var(--line);border-radius:50%;
+  }
+  .hero-ring::after{
+    content:"利回";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:90px;color:var(--paper-2);font-weight:700;
+  }
+
+  /* ---------- layout ---------- */
+  .app{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;padding:24px 0 80px;align-items:start}
+  @media(max-width:920px){.app{grid-template-columns:1fr}.hero-ring{display:none}}
+
+  /* ---------- panel ---------- */
+  .panel{
+    background:var(--card);border:1px solid var(--line);
+    box-shadow:0 1px 0 #fff inset, 0 22px 48px -34px rgba(16,34,28,.5);
+  }
+  .panel-head{
+    display:flex;align-items:center;gap:14px;padding:22px 26px;border-bottom:1px solid var(--line);
+  }
+  .panel-head .idx{
+    font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:12px;font-weight:700;
+    color:#fff;background:var(--moss);width:26px;height:26px;border-radius:50%;
+    display:grid;place-items:center;letter-spacing:0;
+  }
+  .panel-head h2{font-size:18px;letter-spacing:.08em}
+  .panel-body{padding:8px 26px 26px}
+
+  fieldset{border:none;padding:0;margin:0}
+  .grp-label{
+    font-family:'Hiragino Kaku Gothic ProN',sans-serif;
+    font-size:11px;letter-spacing:.22em;color:var(--brass);
+    border-top:1px solid var(--line);padding-top:18px;margin-top:22px;margin-bottom:4px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .grp-label:first-of-type{border-top:none;padding-top:8px;margin-top:6px}
+
+  .field{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .field:last-child{border-bottom:none}
+  .field label{font-size:14px;color:#33403a}
+  .field label small{display:block;font-size:11px;color:var(--muted);font-family:'Hiragino Kaku Gothic ProN',sans-serif}
+  .input-wrap{position:relative;display:flex;align-items:center}
+  .input-wrap input,.input-wrap select{
+    font-family:'Hiragino Kaku Gothic ProN',sans-serif;
+    width:140px;text-align:right;font-size:15px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:6px;
+    padding:9px 38px 9px 12px;outline:none;transition:.15s;
+  }
+  .input-wrap select{padding-right:12px;text-align:left}
+  .input-wrap input:focus,.input-wrap select:focus{border-color:var(--moss);background:#fff;box-shadow:0 0 0 3px rgba(47,93,79,.12)}
+  .input-wrap .unit{position:absolute;right:12px;font-size:12px;color:var(--muted);pointer-events:none;font-family:'Hiragino Kaku Gothic ProN',sans-serif}
+
+  /* ---------- results ---------- */
+  .result-stack{display:flex;flex-direction:column;gap:24px;position:sticky;top:92px}
+  .verdict{
+    background:var(--moss);color:#f3efe4;padding:30px 30px 26px;position:relative;overflow:hidden;
+    border:1px solid var(--moss);
+  }
+  .verdict::after{
+    content:"";position:absolute;right:-60px;bottom:-60px;width:200px;height:200px;
+    border:1px solid rgba(255,255,255,.14);border-radius:50%;
+  }
+  .verdict .tag{font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:11px;letter-spacing:.28em;opacity:.75}
+  .verdict .big{font-size:48px;font-weight:700;margin-top:6px;letter-spacing:.02em}
+  .verdict .big small{font-size:20px;opacity:.8;margin-left:4px}
+  .verdict .row{display:flex;gap:30px;margin-top:18px;position:relative;z-index:1;flex-wrap:wrap}
+  .verdict .row .k{font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:11px;opacity:.7;letter-spacing:.12em}
+  .verdict .row .v{font-size:22px;font-weight:700}
+  .verdict .v.pos{color:#bfe3c8}
+  .verdict .v.neg{color:#f0b4a8}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+  .stat{background:var(--card);padding:18px 20px}
+  .stat .k{font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:11px;letter-spacing:.12em;color:var(--muted)}
+  .stat .v{font-size:24px;font-weight:700;margin-top:4px;color:var(--ink)}
+  .stat .v small{font-size:13px;color:var(--muted)}
+
+  .breakdown{background:var(--card);border:1px solid var(--line)}
+  .breakdown h3{
+    font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:12px;letter-spacing:.2em;
+    color:var(--brass);padding:18px 22px 0;
+  }
+  .bd-row{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;border-bottom:1px dashed var(--line);font-size:14px}
+  .bd-row:last-child{border-bottom:none}
+  .bd-row .label{color:#33403a;font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:13px}
+  .bd-row .amt{font-weight:700}
+  .bd-row.total{background:var(--paper-2);font-size:15px}
+
+  /* bar */
+  .cf-bar{height:14px;display:flex;border-radius:7px;overflow:hidden;margin:0 22px 18px;border:1px solid var(--line)}
+  .cf-bar i{display:block;height:100%}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;padding:0 22px 20px;font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:11px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+  .disclaimer{font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:11px;color:var(--muted);line-height:1.7;padding:4px 2px}
+
+  footer{border-top:1px solid var(--line);padding:30px 0 50px;font-family:'Hiragino Kaku Gothic ProN',sans-serif}
+  footer .f-in{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+  footer .mark{font-size:16px;letter-spacing:.3em;color:var(--moss);font-weight:700}
+
+  /* table */
+  .yearly{margin-top:40px}
+  .yearly h2{font-size:20px;letter-spacing:.06em;margin-bottom:4px}
+  .yearly p.sub{font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:13px;color:var(--muted);margin-bottom:20px}
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--line);background:var(--card)}
+  table{border-collapse:collapse;width:100%;min-width:680px;font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:13px}
+  th,td{padding:11px 16px;text-align:right;white-space:nowrap}
+  th{background:var(--moss);color:#f3efe4;font-weight:600;letter-spacing:.06em;font-size:12px;position:sticky;left:auto}
+  th:first-child,td:first-child{text-align:center;background:var(--paper-2);font-weight:700;color:var(--ink)}
+  tbody tr:nth-child(even) td{background:var(--paper)}
+  td.neg{color:var(--red)}
+  td.pos{color:var(--moss)}
+
+  .btn-reset{
+    font-family:'Hiragino Kaku Gothic ProN',sans-serif;font-size:12px;letter-spacing:.1em;
+    background:none;border:1px solid var(--line);color:var(--muted);
+    padding:8px 16px;border-radius:6px;cursor:pointer;transition:.15s;
+  }
+  .btn-reset:hover{border-color:var(--moss);color:var(--moss)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <span class="mark">利盛</span>
+      <span class="sub sans">RISHO ・ 不動産投資シミュレーター</span>
+    </div>
+    <div class="top-note sans">入力は即時に反映されます</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap" style="position:relative">
+    <div class="hero-ring"></div>
+    <div class="eyebrow sans">Real Estate Investment Simulator</div>
+    <h1>その物件、<br><span class="accent">手残り</span>はいくらですか。</h1>
+    <p class="lede">土地・建物・諸費用から融資条件・空室率・税金まで。条件を入れるほど、表面利回りの裏にある本当のキャッシュフローが見えてきます。</p>
+    <div class="hero-figures">
+      <div class="figure"><div class="n sans" id="hero-yield">—</div><div class="l sans">実質利回り</div></div>
+      <div class="figure"><div class="n sans" id="hero-cf">—</div><div class="l sans">年間手残り</div></div>
+      <div class="figure"><div class="n sans" id="hero-total">—</div><div class="l sans">総投資額</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap app">
+
+  <!-- ===== 入力 ===== -->
+  <form class="panel" id="form" autocomplete="off">
+    <div class="panel-head">
+      <span class="idx sans">入</span>
+      <h2>投資条件を入力</h2>
+      <button type="button" class="btn-reset sans" id="reset" style="margin-left:auto">初期値に戻す</button>
+    </div>
+    <div class="panel-body">
+
+      <div class="grp-label sans">物件取得費用</div>
+      <div class="field">
+        <label>土地代<small>購入価格</small></label>
+        <div class="input-wrap"><input type="number" id="land" value="3000"><span class="unit sans">万円</span></div>
+      </div>
+      <div class="field">
+        <label>建物代<small>新築・中古の建物価格</small></label>
+        <div class="input-wrap"><input type="number" id="building" value="5000"><span class="unit sans">万円</span></div>
+      </div>
+      <div class="field">
+        <label>諸費用率<small>仲介・登記・税など。物件価格に対して</small></label>
+        <div class="input-wrap"><input type="number" id="costRate" value="7" step="0.5"><span class="unit sans">%</span></div>
+      </div>
+
+      <div class="grp-label sans">融資条件</div>
+      <div class="field">
+        <label>自己資金<small>頭金として投入する現金</small></label>
+        <div class="input-wrap"><input type="number" id="equity" value="1000"><span class="unit sans">万円</span></div>
+      </div>
+      <div class="field">
+        <label>借入金利<small>年率</small></label>
+        <div class="input-wrap"><input type="number" id="rate" value="2.0" step="0.05"><span class="unit sans">%</span></div>
+      </div>
+      <div class="field">
+        <label>返済期間<small>融資期間</small></label>
+        <div class="input-wrap"><input type="number" id="years" value="30"><span class="unit sans">年</span></div>
+      </div>
+
+      <div class="grp-label sans">収入と運営</div>
+      <div class="field">
+        <label>満室時の月額家賃<small>全室合計</small></label>
+        <div class="input-wrap"><input type="number" id="rent" value="55"><span class="unit sans">万円</span></div>
+      </div>
+      <div class="field">
+        <label>空室率<small>年間平均</small></label>
+        <div class="input-wrap"><input type="number" id="vacancy" value="8" step="1"><span class="unit sans">%</span></div>
+      </div>
+      <div class="field">
+        <label>運営費率<small>管理費・修繕・保険など。家賃収入に対して</small></label>
+        <div class="input-wrap"><input type="number" id="opexRate" value="20" step="1"><span class="unit sans">%</span></div>
+      </div>
+      <div class="field">
+        <label>家賃下落率<small>年あたりの下落想定</small></label>
+        <div class="input-wrap"><input type="number" id="rentDecline" value="1.0" step="0.5"><span class="unit sans">%/年</span></div>
+      </div>
+
+      <div class="grp-label sans">税・出口</div>
+      <div class="field">
+        <label>実効税率<small>所得・法人税の概算</small></label>
+        <div class="input-wrap"><input type="number" id="taxRate" value="30" step="1"><span class="unit sans">%</span></div>
+      </div>
+      <div class="field">
+        <label>建物の減価償却年数<small>定額法での耐用年数</small></label>
+        <div class="input-wrap"><input type="number" id="depYears" value="22"><span class="unit sans">年</span></div>
+      </div>
+    </div>
+  </form>
+
+  <!-- ===== 結果 ===== -->
+  <div class="result-stack">
+
+    <div class="verdict">
+      <div class="tag sans">税引後 年間キャッシュフロー</div>
+      <div class="big sans" id="r-cf-after">—</div>
+      <div class="row">
+        <div><div class="k sans">表面利回り</div><div class="v sans" id="r-gross">—</div></div>
+        <div><div class="k sans">実質利回り(NOI)</div><div class="v sans" id="r-net">—</div></div>
+        <div><div class="k sans">自己資金利回り(CCR)</div><div class="v sans" id="r-ccr">—</div></div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="k sans">総投資額</div><div class="v sans" id="r-total">—</div></div>
+      <div class="stat"><div class="k sans">借入額</div><div class="v sans" id="r-loan">—</div></div>
+      <div class="stat"><div class="k sans">毎月の返済額</div><div class="v sans" id="r-pmt">—</div></div>
+      <div class="stat"><div class="k sans">返済後利回り(税引前CF)</div><div class="v sans" id="r-cf-before">—</div></div>
+    </div>
+
+    <div class="breakdown">
+      <h3 class="sans">年間収支の内訳</h3>
+      <div class="cf-bar" id="cfbar"></div>
+      <div class="legend sans">
+        <span><i style="background:var(--moss-soft)"></i>運営費</span>
+        <span><i style="background:var(--brass)"></i>ローン返済</span>
+        <span><i style="background:var(--red)"></i>税金</span>
+        <span><i style="background:var(--ink)"></i>手残り</span>
+      </div>
+      <div class="bd-row"><span class="label">満室想定 家賃収入</span><span class="amt" id="b-gross">—</span></div>
+      <div class="bd-row"><span class="label">－ 空室損失</span><span class="amt" id="b-vac">—</span></div>
+      <div class="bd-row"><span class="label">－ 運営費</span><span class="amt" id="b-opex">—</span></div>
+      <div class="bd-row total"><span class="label">＝ 営業純利益 (NOI)</span><span class="amt" id="b-noi">—</span></div>
+      <div class="bd-row"><span class="label">－ ローン返済（元利）</span><span class="amt" id="b-debt">—</span></div>
+      <div class="bd-row"><span class="label">－ 税金（減価償却考慮）</span><span class="amt" id="b-tax">—</span></div>
+      <div class="bd-row total"><span class="label">＝ 税引後手残り</span><span class="amt" id="b-final">—</span></div>
+    </div>
+
+    <p class="disclaimer sans">※ 本シミュレーションは概算です。減価償却は建物代を耐用年数で定額償却した額を経費計上、税額は「NOI−支払利息−減価償却費」に実効税率を乗じて算出しています。実際の投資判断は税理士・金融機関にご確認ください。</p>
+  </div>
+</div>
+
+<!-- ===== 年次推移 ===== -->
+<div class="wrap yearly">
+  <h2>キャッシュフローの推移</h2>
+  <p class="sub sans">家賃下落と元金返済の進行を年ごとに表示します（税引後・万円）。</p>
+  <div class="tbl-scroll">
+    <table id="yearTable">
+      <thead>
+        <tr><th>年</th><th>家賃収入</th><th>NOI</th><th>ローン返済</th><th>税金</th><th>税引後CF</th><th>ローン残高</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap f-in">
+    <span class="mark">利盛</span>
+    <span>RISHO Real Estate Investment Simulator — 数字で、確かめる。</span>
+    <span id="now"></span>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const ids = ['land','building','costRate','equity','rate','years','rent','vacancy','opexRate','rentDecline','taxRate','depYears'];
+const defaults = {land:3000,building:5000,costRate:7,equity:1000,rate:2.0,years:30,rent:55,vacancy:8,opexRate:20,rentDecline:1.0,taxRate:30,depYears:22};
+
+// 万円表示
+const man = v => {
+  if(!isFinite(v)) return '—';
+  const r = Math.round(v);
+  return r.toLocaleString('ja-JP') + '<small>万円</small>';
+};
+const pct = v => isFinite(v) ? v.toFixed(2)+'<small>%</small>' : '—';
+const plain = v => Math.round(v).toLocaleString('ja-JP');
+
+function val(id){ const n = parseFloat($(id).value); return isNaN(n)?0:n; }
+
+// 元利均等 月返済額（万円）
+function monthlyPayment(principal, annualRate, years){
+  if(years<=0) return 0;
+  const n = years*12;
+  const r = annualRate/100/12;
+  if(r===0) return principal/n;
+  return principal * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+}
+
+function calc(){
+  const land=val('land'), building=val('building'), costRate=val('costRate');
+  const equity=val('equity'), rate=val('rate'), years=val('years');
+  const rent=val('rent'), vacancy=val('vacancy'), opexRate=val('opexRate');
+  const rentDecline=val('rentDecline'), taxRate=val('taxRate'), depYears=val('depYears');
+
+  const propPrice = land + building;
+  const cost = propPrice * costRate/100;
+  const total = propPrice + cost;
+  const loan = Math.max(total - equity, 0);
+
+  const pmtMonthly = monthlyPayment(loan, rate, years);
+  const annualDebt = pmtMonthly*12;
+
+  // 1年目ベース
+  const grossRent = rent*12;
+  const vacLoss = grossRent*vacancy/100;
+  const effRent = grossRent - vacLoss;
+  const opex = effRent*opexRate/100;
+  const noi = effRent - opex;
+
+  // 減価償却（建物のみ・定額）
+  const depreciation = depYears>0 ? building/depYears : 0;
+
+  // 1年目の支払利息
+  const r = rate/100/12;
+  const interestY1 = loan*r*12 > 0 ? (function(){
+    let bal=loan, interest=0;
+    for(let m=0;m<12;m++){ const i=bal*r; interest+=i; bal-= (pmtMonthly-i); }
+    return interest;
+  })() : 0;
+
+  const taxableY1 = noi - interestY1 - depreciation;
+  const taxY1 = Math.max(taxableY1,0)*taxRate/100;
+  const cfBefore = noi - annualDebt;
+  const cfAfter = cfBefore - taxY1;
+
+  // 利回り
+  const gross = total>0 ? grossRent/total*100 : 0;
+  const net = total>0 ? noi/total*100 : 0;
+  const ccr = equity>0 ? cfAfter/equity*100 : 0;
+
+  // ---- 描画 ----
+  $('r-cf-after').innerHTML = man(cfAfter);
+  $('r-gross').innerHTML = pct(gross);
+  $('r-net').innerHTML = pct(net);
+  $('r-ccr').innerHTML = pct(ccr);
+  $('r-ccr').className = 'v sans ' + (ccr>=0?'pos':'neg');
+
+  $('r-total').innerHTML = man(total);
+  $('r-loan').innerHTML = man(loan);
+  $('r-pmt').innerHTML = isFinite(pmtMonthly)? plain(Math.round(pmtMonthly*10)/10)+'<small>万円</small>':'—';
+  $('r-cf-before').innerHTML = man(cfBefore);
+
+  $('b-gross').innerHTML = man(grossRent);
+  $('b-vac').innerHTML = '-'+man(vacLoss);
+  $('b-opex').innerHTML = '-'+man(opex);
+  $('b-noi').innerHTML = man(noi);
+  $('b-debt').innerHTML = '-'+man(annualDebt);
+  $('b-tax').innerHTML = '-'+man(taxY1);
+  $('b-final').innerHTML = man(cfAfter);
+
+  // hero
+  $('hero-yield').innerHTML = pct(net);
+  $('hero-cf').innerHTML = man(cfAfter);
+  $('hero-total').innerHTML = man(total);
+
+  // bar (NOIから見たcfの色) -- 収入を100とした構成
+  const base = grossRent>0?grossRent:1;
+  const segOpex=(opex/base)*100, segDebt=(annualDebt/base)*100, segTax=(Math.max(taxY1,0)/base)*100;
+  const segCf=Math.max((cfAfter/base)*100,0);
+  const segVac=(vacLoss/base)*100;
+  $('cfbar').innerHTML =
+    `<i style="background:var(--moss-soft);width:${segOpex+segVac}%"></i>`+
+    `<i style="background:var(--brass);width:${segDebt}%"></i>`+
+    `<i style="background:var(--red);width:${segTax}%"></i>`+
+    `<i style="background:var(--ink);width:${segCf}%"></i>`;
+
+  // ---- 年次テーブル ----
+  const tbody = $('yearTable').querySelector('tbody');
+  tbody.innerHTML='';
+  let bal=loan;
+  const rows=Math.min(years||30,35);
+  for(let y=1;y<=rows;y++){
+    const declineFactor=Math.pow(1-rentDecline/100, y-1);
+    const gRent=grossRent*declineFactor;
+    const eRent=gRent*(1-vacancy/100);
+    const op=eRent*opexRate/100;
+    const yNoi=eRent-op;
+    // 当年の利息
+    let interest=0, principalPaid=0;
+    if(bal>0.0001 && y<=years){
+      for(let m=0;m<12;m++){
+        const i=bal*r; const p=pmtMonthly-i;
+        interest+=i; principalPaid+=p; bal=Math.max(bal-p,0);
+      }
+    }
+    const debt=(y<=years)?annualDebt:0;
+    const taxable=yNoi-interest-depreciation;
+    const tax=Math.max(taxable,0)*taxRate/100;
+    const cf=yNoi-debt-tax;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${y}</td>
+      <td>${plain(gRent)}</td>
+      <td>${plain(yNoi)}</td>
+      <td>${plain(debt)}</td>
+      <td>${plain(tax)}</td>
+      <td class="${cf>=0?'pos':'neg'}">${plain(cf)}</td>
+      <td>${plain(bal)}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+ids.forEach(id=>$(id).addEventListener('input',calc));
+$('reset').addEventListener('click',()=>{ids.forEach(id=>$(id).value=defaults[id]);calc();});
+$('now').textContent=new Date().getFullYear()+' © RISHO';
+calc();
+</script>
+</body>
+</html>
